@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
 
-    private static final AtomicInteger countChar3 = new AtomicInteger(0);
-    private static final AtomicInteger countChar4 = new AtomicInteger(0);
-    private static final AtomicInteger countChar5 = new AtomicInteger(0);
+    private static final AtomicInteger nickname1 = new AtomicInteger(0);
+    private static final AtomicInteger nickname2 = new AtomicInteger(0);
+    private static final AtomicInteger nickname3 = new AtomicInteger(0);
 
     public static void main(String[] args) throws InterruptedException {
         Random random = new Random();
@@ -21,26 +21,38 @@ public class Main {
 
         List<Thread> threads = new ArrayList<>();
 
-        Runnable runnableChar3 = () -> Arrays.stream(texts)
-            .filter(t -> t.length() == 3)
-            .filter(t -> t.equals("aaa") || t.equals("bbb") || t.equals("ccc"))
-            .forEach(i -> countChar3.getAndIncrement());
-        threads.add(new Thread(runnableChar3));
-
-        Runnable runnableChar4 = () -> Arrays.stream(texts)
-                    .filter(t -> t.length() == 4)
-                    .filter(t -> t.equals("abba") || t.equals("baab") || t.equals("caac") || t.equals("acca") || t.equals("cbbc") || t.equals("bccb"))
-                    .forEach(i -> countChar4.getAndIncrement());
-        threads.add(new Thread(runnableChar4));
-
-        Runnable runnableChar5 = () -> { for (String s :texts) {
-                if (s.length() == 5) {
-                    int count = getCharCount(s);
-                    if (count == 5) countChar5.getAndIncrement();
-                }
+        Runnable runnable1 = () -> Arrays.stream(texts).forEach(i -> {
+            if (i.length() == 3 && isPalindrome(i)) {
+                nickname1.getAndIncrement();
+            } else if (i.length() == 4 && isPalindrome(i)) {
+                nickname2.getAndIncrement();
+            } else if (i.length() == 5 && isPalindrome(i)) {
+                nickname3.getAndIncrement();
             }
-        };
-        threads.add(new Thread(runnableChar5));
+        });
+        threads.add(new Thread(runnable1));
+
+        Runnable runnable2 = () -> Arrays.stream(texts).forEach(i -> {
+            if (i.length() == 3 && isEquals(i)) {
+                nickname1.getAndIncrement();
+            } else if (i.length() == 4 && isEquals(i)) {
+                nickname2.getAndIncrement();
+            } else if (i.length() == 5 && isEquals(i)) {
+                nickname3.getAndIncrement();
+            }
+        });
+        threads.add(new Thread(runnable2));
+
+        Runnable runnable3 = () -> Arrays.stream(texts).forEach(i -> {
+            if (i.length() == 3 && isSort(i)) {
+                nickname1.getAndIncrement();
+            } else if (i.length() == 4 && isSort(i)) {
+                nickname2.getAndIncrement();
+            } else if (i.length() == 5 && isSort(i)) {
+                nickname3.getAndIncrement();
+            }
+        });
+        threads.add(new Thread(runnable3));
 
         for (Thread thread : threads) {
             thread.start();
@@ -48,30 +60,27 @@ public class Main {
         }
 
         System.out.println();
-        System.out.println("Красивых слов с длиной 3: " + countChar4 + " шт");
-        System.out.println("Красивых слов с длиной 4: " + countChar3 + " шт");
-        System.out.println("Красивых слов с длиной 5: " + countChar5 + " шт");
+        System.out.println("Красивых слов с длиной 3: " + nickname1 + " шт");
+        System.out.println("Красивых слов с длиной 4: " + nickname2 + " шт");
+        System.out.println("Красивых слов с длиной 5: " + nickname3 + " шт");
 
         }
 
-    private static int getCharCount(String s) {
-        int count = 0;
-        for (int j = 0; j < s.length(); j++) {
-            if (j == 4) {
-                if ((int) s.charAt(j) >= (int) s.charAt(j-1)) {
-                    count++;
-                }
-            } else if (j == 0) {
-                if ((int) s.charAt(j) <= (int) s.charAt(j+1)) {
-                    count++;
-                }
-            } else {
-                if ((int) s.charAt(j) <= (int) s.charAt(j+1) && (int) s.charAt(j) >= (int) s.charAt(j-1)) {
-                    count++;
-                }
-            }
+    private static boolean isPalindrome(String string) {
+        return !isEquals(string) && string.contentEquals(new StringBuilder(string).reverse());
         }
-        return count;
+
+    private static boolean isEquals(String string) {
+        return string.matches("(.)\\1*");
+    }
+
+    private static boolean isSort(String string) {
+        String stringSort = string.chars()
+                .sorted()
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+
+        return !isEquals(string) && stringSort.equals(string);
     }
 
     public static String generateText(String letters, int length) {
